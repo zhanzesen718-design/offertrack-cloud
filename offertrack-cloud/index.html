@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>工作/实习投递进度</title>
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles-polish.css" />
   </head>
   <body>
     <div class="app-shell">
@@ -35,7 +36,7 @@
       </aside>
 
       <main class="main-content">
-        <section id="dashboard" class="toolbar">
+        <section id="dashboard" class="toolbar hero-toolbar">
           <div>
             <p class="eyebrow">求职进度</p>
             <h2>工作/实习投递进度</h2>
@@ -72,24 +73,27 @@
             <p class="eyebrow">Cloud Sync</p>
             <h3>账号与跨设备同步</h3>
           </div>
+
           <div class="auth-layout">
             <form class="auth-form" id="authForm">
+              <div class="account-avatar" aria-hidden="true">OT</div>
               <label>
                 邮箱
                 <input id="emailInput" name="email" type="email" placeholder="you@example.com" autocomplete="email" />
               </label>
-              <label>
+              <label class="password-field">
                 密码
                 <input id="passwordInput" name="password" type="password" placeholder="至少 6 位" autocomplete="current-password" />
               </label>
               <div class="form-actions">
                 <button class="primary-button" id="signInButton" type="submit">登录</button>
                 <button class="ghost-button" id="signUpButton" type="button">注册</button>
-                <button class="ghost-button is-hidden" id="signOutButton" type="button">退出</button>
+                <button class="ghost-button is-hidden" id="signOutButton" type="button">退出登录</button>
               </div>
             </form>
 
             <article class="sync-panel">
+              <div class="sync-badge" id="syncBadge">Local</div>
               <strong id="syncTitle">未连接云端</strong>
               <p id="syncMessage">填写 config.js 中的 Supabase 项目地址和 anon key 后，可以注册账号并跨设备同步。</p>
               <button class="ghost-button is-hidden" id="uploadLocalButton" type="button">上传本地记录到云端</button>
@@ -284,5 +288,6 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
     <script src="app.js?v=bulk-right-1" type="module"></script>
+    <script src="ui-polish.js?v=bulk-right-1" type="module"></script>
   </body>
 </html>
