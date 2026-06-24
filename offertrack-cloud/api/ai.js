@@ -1,4 +1,4 @@
-module.exports = async function handler(request, response) {
+﻿module.exports = async function handler(request, response) {
   if (request.method !== "POST") {
     response.status(405).json({ error: "Method not allowed" });
     return;
@@ -11,6 +11,12 @@ module.exports = async function handler(request, response) {
   }
 
   try {
+    if (process.env.BIGMODEL_API_KEY) {
+      const result = await generateWithBigModel({ projectName, techStack, details });
+      response.status(200).json({ result });
+      return;
+    }
+
     if (process.env.GEMINI_API_KEY) {
       const result = await generateWithGemini({ projectName, techStack, details });
       response.status(200).json({ result });
@@ -31,6 +37,38 @@ module.exports = async function handler(request, response) {
     });
   }
 };
+
+async function generateWithBigModel({ projectName, techStack, details }) {
+  const aiResponse = await fetch("https://open.bigmodel.cn/api/paas/v4/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.BIGMODEL_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: process.env.BIGMODEL_MODEL || "glm-4.7-flash",
+      temperature: 0.6,
+      messages: [
+        {
+          role: "system",
+          content:
+            "你是资深中文技术简历顾问。请输出 3 条适合新手开发者简历的项目经历 bullet points，强调技术栈、业务价值、个人贡献、跨设备数据同步和可部署结果。不要夸大，不要编造数据。",
+        },
+        {
+          role: "user",
+          content: `项目名称：${projectName}\n技术栈：${techStack}\n项目细节：${details}`,
+        },
+      ],
+    }),
+  });
+
+  if (!aiResponse.ok) {
+    throw new Error(`BigModel API error: ${aiResponse.status}`);
+  }
+
+  const data = await aiResponse.json();
+  return extractBigModelText(data) || buildFallback({ projectName, techStack, details });
+}
 
 async function generateWithGemini({ projectName, techStack, details }) {
   const model = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
@@ -118,4 +156,20 @@ function extractOpenAIText(data) {
     ?.map((content) => content.text)
     ?.filter(Boolean)
     ?.join("\n");
+}
+
+function extractBigModelText(data) {
+  const content = data?.choices?.[0]?.message?.content;
+  if (typeof content === "string") {
+    return content;
+  }
+
+  if (Array.isArray(content)) {
+    return content
+      .map((item) => item?.text || item?.content)
+      .filter(Boolean)
+      .join("\n");
+  }
+
+  return "";
 }
