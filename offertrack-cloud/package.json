@@ -1,0 +1,14 @@
+{
+  "name": "offertrack-cloud",
+  "version": "2.0.0",
+  "private": true,
+  "description": "AI job application tracker with Supabase cloud sync.",
+  "scripts": {
+    "dev": "vercel dev",
+    "start": "vercel dev",
+    "lint": "node scripts/check-static.js"
+  },
+  "devDependencies": {
+    "vercel": "latest"
+  }
+}

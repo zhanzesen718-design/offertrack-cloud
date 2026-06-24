@@ -1,0 +1,145 @@
+.hero-toolbar {
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(13, 118, 110, 0.1), rgba(50, 103, 177, 0.08)),
+    var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.hero-toolbar h2 {
+  max-width: 680px;
+}
+
+.auth-section {
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(238, 245, 242, 0.72), rgba(255, 255, 255, 0) 42%),
+    var(--panel);
+}
+
+.auth-layout {
+  grid-template-columns: minmax(280px, 0.78fr) minmax(320px, 1.22fr);
+  align-items: stretch;
+}
+
+.auth-form,
+.sync-panel {
+  position: relative;
+  min-height: 224px;
+  border: 1px solid rgba(13, 118, 110, 0.18);
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: none;
+}
+
+.auth-form {
+  padding: 18px;
+  border-radius: 8px;
+}
+
+.account-avatar {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  border-radius: 8px;
+  color: #ffffff;
+  background: var(--primary);
+  font-weight: 900;
+}
+
+.sync-panel {
+  align-content: center;
+  padding: 22px;
+}
+
+.sync-panel strong {
+  font-size: 1.35rem;
+}
+
+.sync-badge {
+  width: fit-content;
+  padding: 6px 10px;
+  border: 1px solid rgba(198, 138, 31, 0.28);
+  border-radius: 999px;
+  color: #7b5417;
+  background: rgba(198, 138, 31, 0.12);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+body.is-signed-in .sync-badge {
+  border-color: rgba(13, 118, 110, 0.25);
+  color: var(--primary-dark);
+  background: rgba(13, 118, 110, 0.12);
+}
+
+body.is-signed-in .account-avatar {
+  background: #29834d;
+}
+
+body.is-signed-in #signInButton,
+body.is-signed-in #signUpButton,
+body.is-signed-in .password-field {
+  display: none;
+}
+
+body.is-signed-in .auth-form {
+  align-content: center;
+  background:
+    linear-gradient(135deg, rgba(70, 196, 141, 0.12), rgba(255, 255, 255, 0.82)),
+    var(--panel);
+}
+
+body.is-signed-in #emailInput {
+  border-color: rgba(13, 118, 110, 0.28);
+  color: var(--primary-dark);
+  background: rgba(238, 245, 242, 0.8);
+  font-weight: 800;
+}
+
+body.is-signed-in #signOutButton {
+  width: auto;
+}
+
+.metric-card {
+  border-top: 4px solid rgba(13, 118, 110, 0.72);
+}
+
+.metric-card:nth-child(2) {
+  border-top-color: rgba(50, 103, 177, 0.72);
+}
+
+.metric-card:nth-child(3) {
+  border-top-color: rgba(41, 131, 77, 0.72);
+}
+
+.metric-card:nth-child(4) {
+  border-top-color: rgba(217, 81, 78, 0.72);
+}
+
+.job-form,
+.focus-panel,
+.pipeline-section,
+.resume-lab,
+.data-section {
+  box-shadow: 0 12px 34px rgba(32, 43, 54, 0.08);
+}
+
+.job-card {
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.job-card:hover {
+  border-color: rgba(13, 118, 110, 0.35);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 980px) {
+  .auth-layout {
+    grid-template-columns: 1fr;
+  }
+}
