@@ -1,4 +1,4 @@
-# OfferTrack Cloud AI 求职追踪助手
+﻿# OfferTrack Cloud AI 求职追踪助手
 
 这是一个可部署、支持跨设备同步的 AI 求职追踪网页项目。用户可以注册/登录账号，记录岗位投递、面试状态、跟进日期和备注；登录后数据会保存到 Supabase PostgreSQL 数据库，在不同设备上都能读取。
 
@@ -11,7 +11,7 @@
 - 求职仪表盘：总投递、面试中、Offer、待跟进统计
 - 本地备用模式：未配置 Supabase 或未登录时使用 `localStorage`
 - 数据导入导出：支持 JSON 备份，也可将本地记录上传到云端
-- AI 简历生成：部署到 Vercel 后配置 `OPENAI_API_KEY` 即可调用 OpenAI API
+- AI 简历生成：部署到 Vercel 后可配置智谱 BigModel、Gemini 或 OpenAI API
 
 ## 本地预览
 
@@ -51,7 +51,17 @@ export const SUPABASE_ANON_KEY = "你的 anon public key";
 1. 把 `offertrack-cloud` 目录上传到 GitHub。
 2. 在 Vercel 导入仓库。
 3. 如果仓库根目录不是 `offertrack-cloud`，在 Vercel 项目设置里把 Root Directory 设为 `offertrack-cloud`。
-4. 在 Environment Variables 中添加：
+4. 在 Environment Variables 中添加你要使用的模型平台密钥。
+5. 点击 Deploy。
+
+推荐优先配置智谱 BigModel：
+
+```text
+BIGMODEL_API_KEY=你的智谱 API Key
+BIGMODEL_MODEL=glm-4.7-flash
+```
+
+也兼容原来的配置：
 
 ```text
 GEMINI_API_KEY=你的 Google AI Studio API Key
@@ -60,7 +70,26 @@ OPENAI_API_KEY=你的 OpenAI API Key
 OPENAI_MODEL=gpt-4.1-mini
 ```
 
-5. 点击 Deploy。
+代码里的优先级是：
+
+```text
+BigModel -> Gemini -> OpenAI -> 本地备用模板
+```
+
+## 获取智谱 API
+
+1. 打开 https://open.bigmodel.cn/
+2. 注册并登录智谱开放平台。
+3. 进入控制台的 `API Keys` 页面。
+4. 新建一个 API Key。
+5. 到 Vercel 项目里添加环境变量：
+
+```text
+BIGMODEL_API_KEY=你创建的 Key
+BIGMODEL_MODEL=glm-4.7-flash
+```
+
+部署后，网页里的 AI 简历项目描述生成器就会优先走智谱接口。
 
 ## 数据保存在哪里
 
@@ -80,10 +109,13 @@ Supabase PostgreSQL 的 public.jobs 表
 
 ## 简历写法参考
 
-> 开发并部署 OfferTrack Cloud AI 求职追踪助手，支持用户注册登录、岗位投递追踪、面试状态管理、跟进提醒、数据导入导出与 AI 简历项目描述生成；基于 Supabase Auth、PostgreSQL 和 Row Level Security 实现跨设备数据持久化与多用户数据隔离，使用 Vercel Serverless Function 封装 OpenAI API，并通过 Codex 辅助完成需求拆解、前端实现、云端同步逻辑和部署排错。
+> 开发并部署 OfferTrack Cloud AI 求职追踪助手，支持用户注册登录、岗位投递追踪、面试状态管理、跟进提醒、数据导入导出与 AI 简历项目描述生成；基于 Supabase Auth、PostgreSQL 和 Row Level Security 实现跨设备数据持久化与多用户数据隔离，使用 Vercel Serverless Function 封装大模型 API，并通过 Codex 辅助完成需求拆解、前端实现、云端同步逻辑和部署排错。
 
 ## 官方文档
 
+- 智谱开放平台: https://docs.bigmodel.cn/cn/guide/start/introduction
+- 智谱快速开始: https://docs.bigmodel.cn/cn/guide/start/quick-start
+- 智谱模型概览: https://docs.bigmodel.cn/cn/guide/start/model-overview
 - Supabase Auth: https://supabase.com/docs/guides/auth
 - Supabase Row Level Security: https://supabase.com/docs/guides/database/postgres/row-level-security
 - Supabase JavaScript: https://supabase.com/docs/reference/javascript
