@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
@@ -197,32 +197,38 @@
         <section id="resume" class="resume-lab">
           <div class="section-heading">
             <p class="eyebrow">AI Resume Lab</p>
-            <h3>简历项目描述生成器</h3>
+            <h3>简历经历描述生成器</h3>
           </div>
 
           <div class="resume-layout">
             <form class="resume-form" id="resumeForm">
               <label>
-                项目名称
-                <input id="projectNameInput" type="text" placeholder="例如：AI 求职追踪助手" />
+                经历名称
+                <input id="projectNameInput" type="text" placeholder="例如：新媒体运营实习 / 校园活动策划 / AI 求职追踪助手" />
               </label>
               <label>
-                技术栈
-                <input id="techStackInput" type="text" placeholder="例如：HTML, CSS, JavaScript, Supabase, Vercel" />
+                岗位/技能关键词（选填）
+                <input id="keywordsInput" type="text" placeholder="例如：数据分析、活动执行、用户运营、Excel、Python、剪映" />
               </label>
               <label>
                 你做了什么
-                <textarea id="projectDetailInput" rows="6" placeholder="描述功能、你的贡献、遇到的问题、最后上线结果"></textarea>
+                <textarea id="projectDetailInput" rows="6" placeholder="描述你的任务、具体做法、解决的问题、取得的结果，越具体越好"></textarea>
               </label>
-              <button class="primary-button" id="generateResumeButton" type="submit">生成简历要点</button>
+              <div class="form-actions">
+                <button class="primary-button" id="generateResumeButton" type="submit">生成简历要点</button>
+                <button class="ghost-button" id="clearResumeButton" type="button">清空重填</button>
+              </div>
             </form>
 
             <article class="ai-output" aria-live="polite">
               <div class="output-header">
                 <span>输出结果</span>
-                <button class="icon-button" id="copyResumeButton" type="button" aria-label="复制结果">复制</button>
+                <div class="output-actions">
+                  <button class="icon-button" id="copyResumeButton" type="button" aria-label="复制结果">复制</button>
+                  <button class="icon-button" id="clearResumeResultButton" type="button" aria-label="清空内容">清空</button>
+                </div>
               </div>
-              <pre id="resumeOutput">填写左侧内容后，生成适合写进简历的项目 bullet points。</pre>
+              <pre id="resumeOutput">填写左侧内容后，生成适合写进简历的经历描述。</pre>
             </article>
           </div>
         </section>
@@ -287,7 +293,8 @@
 
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
-    <script src="app.js?v=bulk-right-1" type="module"></script>
-    <script src="ui-polish.js?v=bulk-right-1" type="module"></script>
+    <script src="app.js?v=resume-general-4" type="module"></script>
+    <script src="ui-polish.js?v=resume-general-4" type="module"></script>
   </body>
 </html>
+

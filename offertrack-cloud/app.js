@@ -1,4 +1,4 @@
-import { SUPABASE_ANON_KEY, SUPABASE_URL } from "./config.js";
+﻿import { SUPABASE_ANON_KEY, SUPABASE_URL } from "./config.js";
 
 const STORAGE_KEY = "offertrack.jobs.v2";
 const SUPABASE_SCRIPT = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
@@ -77,6 +77,8 @@ const elements = {
   resumeForm: document.querySelector("#resumeForm"),
   resumeOutput: document.querySelector("#resumeOutput"),
   copyResumeButton: document.querySelector("#copyResumeButton"),
+  clearResumeButton: document.querySelector("#clearResumeButton"),
+  clearResumeResultButton: document.querySelector("#clearResumeResultButton"),
   authForm: document.querySelector("#authForm"),
   signUpButton: document.querySelector("#signUpButton"),
   signOutButton: document.querySelector("#signOutButton"),
@@ -105,6 +107,8 @@ elements.selectAllJobsButton?.addEventListener("click", selectAllVisibleJobs);
 elements.deleteSelectedButton?.addEventListener("click", deleteSelectedJobs);
 elements.resumeForm.addEventListener("submit", generateResumeBullets);
 elements.copyResumeButton.addEventListener("click", copyResumeOutput);
+elements.clearResumeButton?.addEventListener("click", clearResumeForm);
+elements.clearResumeResultButton?.addEventListener("click", clearResumeForm);
 elements.authForm.addEventListener("submit", signIn);
 elements.signUpButton.addEventListener("click", signUp);
 elements.signOutButton.addEventListener("click", signOut);
@@ -544,12 +548,12 @@ async function generateResumeBullets(event) {
   event.preventDefault();
   const payload = {
     projectName: document.querySelector("#projectNameInput").value.trim(),
-    techStack: document.querySelector("#techStackInput").value.trim(),
+    keywords: (document.querySelector("#keywordsInput") || document.querySelector("#techStackInput"))?.value.trim() || "",
     details: document.querySelector("#projectDetailInput").value.trim(),
   };
 
-  if (!payload.projectName || !payload.techStack || !payload.details) {
-    elements.resumeOutput.textContent = "请先填写项目名称、技术栈和你的具体贡献。";
+  if (!payload.projectName || !payload.details) {
+    elements.resumeOutput.textContent = "请先填写经历名称和你的具体贡献。";
     return;
   }
 
@@ -568,6 +572,12 @@ async function generateResumeBullets(event) {
   } catch (error) {
     elements.resumeOutput.textContent = buildLocalResumeBullets(payload);
   }
+}
+
+function clearResumeForm() {
+  elements.resumeForm?.reset();
+  elements.resumeOutput.textContent = "填写左侧内容后，生成适合写进简历的经历描述。";
+  document.querySelector("#projectNameInput")?.focus();
 }
 
 async function copyResumeOutput() {
@@ -939,11 +949,13 @@ function todayOffset(offset) {
   return date.toISOString().slice(0, 10);
 }
 
-function buildLocalResumeBullets({ projectName, techStack, details }) {
+function buildLocalResumeBullets({ projectName, keywords, details }) {
   const conciseDetails = details.length > 90 ? `${details.slice(0, 90)}...` : details;
+  const keywordText = keywords ? `，可结合 ${keywords} 等关键词展开` : "";
   return [
-    `- 基于 ${techStack} 开发并部署 ${projectName}，覆盖求职投递记录、状态追踪、跟进提醒、跨设备云端同步和数据导入导出等核心流程。`,
-    "- 使用 Supabase Auth、PostgreSQL 和 Row Level Security 实现用户登录、云端数据持久化与多用户数据隔离。",
-    `- 集成 AI 简历文案生成接口，将项目经历自动转化为结构化简历 bullet points；项目贡献包括：${conciseDetails}`,
+    `- 围绕 ${projectName} 提炼出适合简历呈现的经历亮点，突出目标、职责分工、执行过程与结果${keywordText}。`,
+    "- 将原始经历整理为更清晰的简历表达，帮助在投递中更准确地呈现个人贡献、协作内容和实际产出。",
+    `- 根据提供的经历细节生成可直接复用的简历要点，核心内容包括：${conciseDetails}`,
   ].join("\n");
 }
+
