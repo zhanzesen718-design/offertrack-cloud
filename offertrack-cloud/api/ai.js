@@ -1,44 +1,47 @@
-﻿module.exports = async function handler(request, response) {
+module.exports = async function handler(request, response) {
   if (request.method !== "POST") {
     response.status(405).json({ error: "Method not allowed" });
     return;
   }
 
-  const { projectName, techStack, details } = request.body || {};
-  if (!projectName || !techStack || !details) {
-    response.status(400).json({ error: "Missing projectName, techStack, or details" });
+  const { projectName, keywords = "", techStack = "", details } = request.body || {};
+  const experienceKeywords = keywords || techStack;
+  if (!projectName || !details) {
+    response.status(400).json({ error: "Missing projectName or details" });
     return;
   }
 
+  const payload = { projectName, keywords: experienceKeywords, details };
+
   try {
     if (process.env.BIGMODEL_API_KEY) {
-      const result = await generateWithBigModel({ projectName, techStack, details });
+      const result = await generateWithBigModel(payload);
       response.status(200).json({ result });
       return;
     }
 
     if (process.env.GEMINI_API_KEY) {
-      const result = await generateWithGemini({ projectName, techStack, details });
+      const result = await generateWithGemini(payload);
       response.status(200).json({ result });
       return;
     }
 
     if (process.env.OPENAI_API_KEY) {
-      const result = await generateWithOpenAI({ projectName, techStack, details });
+      const result = await generateWithOpenAI(payload);
       response.status(200).json({ result });
       return;
     }
 
-    response.status(200).json({ result: buildFallback({ projectName, techStack, details }) });
+    response.status(200).json({ result: buildFallback(payload) });
   } catch (error) {
     response.status(500).json({
       error: "AI generation failed",
-      result: buildFallback({ projectName, techStack, details }),
+      result: buildFallback(payload),
     });
   }
 };
 
-async function generateWithBigModel({ projectName, techStack, details }) {
+async function generateWithBigModel({ projectName, keywords, details }) {
   const aiResponse = await fetch("https://open.bigmodel.cn/api/paas/v4/chat/completions", {
     method: "POST",
     headers: {
@@ -52,11 +55,13 @@ async function generateWithBigModel({ projectName, techStack, details }) {
         {
           role: "system",
           content:
-            "你是资深中文技术简历顾问。请输出 3 条适合新手开发者简历的项目经历 bullet points，强调技术栈、业务价值、个人贡献、跨设备数据同步和可部署结果。不要夸大，不要编造数据。",
+            "你是资深中文简历顾问。请输出 3 条适合简历使用的经历描述，可以是项目、实习、校园、活动、运营或职能类经历。若用户提供关键词，则自然融入；若没有，则不要强行写技术栈。强调目标、职责、个人贡献、结果和可量化价值；不要夸大，不要编造数据。",
         },
         {
           role: "user",
-          content: `项目名称：${projectName}\n技术栈：${techStack}\n项目细节：${details}`,
+          content: `经历名称：${projectName}
+关键词：${keywords || "未提供"}
+经历细节：${details}`,
         },
       ],
     }),
@@ -67,10 +72,10 @@ async function generateWithBigModel({ projectName, techStack, details }) {
   }
 
   const data = await aiResponse.json();
-  return extractBigModelText(data) || buildFallback({ projectName, techStack, details });
+  return extractBigModelText(data) || buildFallback({ projectName, keywords, details });
 }
 
-async function generateWithGemini({ projectName, techStack, details }) {
+async function generateWithGemini({ projectName, keywords, details }) {
   const model = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
   const apiResponse = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GEMINI_API_KEY}`,
@@ -83,7 +88,7 @@ async function generateWithGemini({ projectName, techStack, details }) {
             role: "user",
             parts: [
               {
-                text: buildPrompt({ projectName, techStack, details }),
+                text: buildPrompt({ projectName, keywords, details }),
               },
             ],
           },
@@ -97,10 +102,10 @@ async function generateWithGemini({ projectName, techStack, details }) {
   }
 
   const data = await apiResponse.json();
-  return data.candidates?.[0]?.content?.parts?.map((part) => part.text).filter(Boolean).join("\n") || buildFallback({ projectName, techStack, details });
+  return data.candidates?.[0]?.content?.parts?.map((part) => part.text).filter(Boolean).join("\n") || buildFallback({ projectName, keywords, details });
 }
 
-async function generateWithOpenAI({ projectName, techStack, details }) {
+async function generateWithOpenAI({ projectName, keywords, details }) {
   const aiResponse = await fetch("https://api.openai.com/v1/responses", {
     method: "POST",
     headers: {
@@ -113,11 +118,13 @@ async function generateWithOpenAI({ projectName, techStack, details }) {
         {
           role: "system",
           content:
-            "你是资深中文技术简历顾问。请输出 3 条适合新手开发者简历的项目经历 bullet points，强调技术栈、业务价值、个人贡献、跨设备数据同步和可部署结果。不要夸大，不要编造数据。",
+            "你是资深中文简历顾问。请输出 3 条适合简历使用的经历描述，可以是项目、实习、校园、活动、运营或职能类经历。若用户提供关键词，则自然融入；若没有，则不要强行写技术栈。强调目标、职责、个人贡献、结果和可量化价值；不要夸大，不要编造数据。",
         },
         {
           role: "user",
-          content: `项目名称：${projectName}\n技术栈：${techStack}\n项目细节：${details}`,
+          content: `经历名称：${projectName}
+关键词：${keywords || "未提供"}
+经历细节：${details}`,
         },
       ],
     }),
@@ -128,25 +135,26 @@ async function generateWithOpenAI({ projectName, techStack, details }) {
   }
 
   const data = await aiResponse.json();
-  return data.output_text || extractOpenAIText(data) || buildFallback({ projectName, techStack, details });
+  return data.output_text || extractOpenAIText(data) || buildFallback({ projectName, keywords, details });
 }
 
-function buildPrompt({ projectName, techStack, details }) {
+function buildPrompt({ projectName, keywords, details }) {
   return [
-    "你是资深中文技术简历顾问。请输出 3 条适合新手开发者简历的项目经历 bullet points。",
-    "要求：强调技术栈、业务价值、个人贡献、跨设备数据同步和可部署结果；不要夸大，不要编造数据。",
-    `项目名称：${projectName}`,
-    `技术栈：${techStack}`,
-    `项目细节：${details}`,
+    "你是资深中文简历顾问。请输出 3 条适合简历使用的经历描述，可以是项目、实习、校园、活动、运营或职能类经历。",
+    "要求：若提供关键词则自然融入；若未提供则不要强行写技术栈。强调目标、职责、个人贡献、结果和业务价值；不要夸大，不要编造数据。",
+    `经历名称：${projectName}`,
+    `关键词：${keywords || "未提供"}`,
+    `经历细节：${details}`,
   ].join("\n");
 }
 
-function buildFallback({ projectName, techStack, details }) {
+function buildFallback({ projectName, keywords, details }) {
   const conciseDetails = details.length > 90 ? `${details.slice(0, 90)}...` : details;
+  const keywordText = keywords ? `，可结合 ${keywords} 等关键词展开` : "";
   return [
-    `- 基于 ${techStack} 开发并部署 ${projectName}，覆盖工作/实习投递记录、状态追踪、跟进提醒、跨设备云端同步和数据导入导出等核心流程。`,
-    "- 使用 Supabase Auth、PostgreSQL 和 Row Level Security 实现用户登录、云端数据持久化与多用户数据隔离。",
-    `- 集成 AI 简历文案生成接口，将项目经历自动转化为结构化简历 bullet points；项目贡献包括：${conciseDetails}`,
+    `- 围绕 ${projectName} 提炼出适合简历呈现的经历亮点，突出目标、职责分工、执行过程与结果${keywordText}。`,
+    "- 将原始经历整理为更清晰的简历表达，帮助在投递中更准确地呈现个人贡献、协作内容和实际产出。",
+    `- 根据提供的经历细节生成可直接复用的简历要点，核心内容包括：${conciseDetails}`,
   ].join("\n");
 }
 
