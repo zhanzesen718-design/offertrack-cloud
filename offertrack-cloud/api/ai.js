@@ -15,31 +15,51 @@ module.exports = async function handler(request, response) {
 
   try {
     if (process.env.BIGMODEL_API_KEY) {
-      const result = await generateWithBigModel(payload);
-      response.status(200).json({ result });
+      const result = await retryAI(() => generateWithBigModel(payload));
+      response.status(200).json({ result, source: "bigmodel" });
       return;
     }
 
     if (process.env.GEMINI_API_KEY) {
-      const result = await generateWithGemini(payload);
-      response.status(200).json({ result });
+      const result = await retryAI(() => generateWithGemini(payload));
+      response.status(200).json({ result, source: "gemini" });
       return;
     }
 
     if (process.env.OPENAI_API_KEY) {
-      const result = await generateWithOpenAI(payload);
-      response.status(200).json({ result });
+      const result = await retryAI(() => generateWithOpenAI(payload));
+      response.status(200).json({ result, source: "openai" });
       return;
     }
 
-    response.status(200).json({ result: buildFallback(payload) });
+    response.status(200).json({ result: buildFallback(payload), source: "fallback" });
   } catch (error) {
-    response.status(500).json({
-      error: "AI generation failed",
+    response.status(200).json({
       result: buildFallback(payload),
+      source: "fallback",
+      error: error.message || "AI generation failed",
     });
   }
 };
+
+async function retryAI(task, attempts = 3) {
+  let lastError;
+  for (let index = 0; index < attempts; index += 1) {
+    try {
+      return await task();
+    } catch (error) {
+      lastError = error;
+      if (index < attempts - 1) {
+        await delay(500 * (index + 1));
+      }
+    }
+  }
+  throw lastError;
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 async function generateWithBigModel({ projectName, keywords, details }) {
   const aiResponse = await fetch("https://open.bigmodel.cn/api/paas/v4/chat/completions", {
@@ -59,9 +79,7 @@ async function generateWithBigModel({ projectName, keywords, details }) {
         },
         {
           role: "user",
-          content: `经历名称：${projectName}
-关键词：${keywords || "未提供"}
-经历细节：${details}`,
+          content: `经历名称：${projectName}\n关键词：${keywords || "未提供"}\n经历细节：${details}`,
         },
       ],
     }),
@@ -122,9 +140,7 @@ async function generateWithOpenAI({ projectName, keywords, details }) {
         },
         {
           role: "user",
-          content: `经历名称：${projectName}
-关键词：${keywords || "未提供"}
-经历细节：${details}`,
+          content: `经历名称：${projectName}\n关键词：${keywords || "未提供"}\n经历细节：${details}`,
         },
       ],
     }),
