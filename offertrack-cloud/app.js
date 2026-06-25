@@ -560,18 +560,34 @@ async function generateResumeBullets(event) {
   elements.resumeOutput.textContent = "正在生成...";
 
   try {
-    const response = await fetch("/api/ai", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) throw new Error("AI endpoint failed");
-    const data = await response.json();
+    const data = await requestResumeAI(payload);
     elements.resumeOutput.textContent = data.result;
   } catch (error) {
     elements.resumeOutput.textContent = buildLocalResumeBullets(payload);
   }
+}
+
+async function requestResumeAI(payload, attempts = 3) {
+  let lastError;
+  for (let index = 0; index < attempts; index += 1) {
+    try {
+      const response = await fetch("/api/ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) throw new Error("AI endpoint failed");
+      return await response.json();
+    } catch (error) {
+      lastError = error;
+      if (index < attempts - 1) {
+        elements.resumeOutput.textContent = `正在生成...（第 ${index + 2} 次尝试）`;
+        await new Promise((resolve) => setTimeout(resolve, 500 * (index + 1)));
+      }
+    }
+  }
+  throw lastError;
 }
 
 function clearResumeForm() {
